@@ -41,8 +41,6 @@ class NativeDependenciesResolverTask extends DefaultTask {
     final String ARM_FILTER = "armeabi"
     final String ARMV7A_FILTER = "armeabi-v7a"
     final String ARM64_FILTER = "arm64-v8a"
-    final String DEPENDENCY_SUFFIX = "@so"
-    final String ARTIFACT_FILE_EXT = ".so"
 
     final Logger log = Logging.getLogger NativeDependenciesResolverTask
 
@@ -90,11 +88,11 @@ class NativeDependenciesResolverTask extends DefaultTask {
                 copyToTarget(map.depFile, filter, map.depName, artifact.shouldPrefixWithLib)
 
             } else {
-                log.warn("Failed to retrieve artifcat '$artifact'")
+                log.warn("Failed to retrieve artifact '$artifact'")
             }
 
         } catch (ResolveException e) {
-            log.warn("Could not resolve artifcat '$artifact'", e)
+            log.warn("Could not resolve artifact '$artifact'", e)
         }
     }
 
@@ -123,12 +121,13 @@ class NativeDependenciesResolverTask extends DefaultTask {
         log.info "Trying to resolve artifact '$artifact' using defined repositories"
 
         def map = [:]
-        Dependency dependency = project.dependencies.create(artifact + DEPENDENCY_SUFFIX)
+        Dependency dependency = project.dependencies.create(artifact)
+
         Configuration configuration = project.configurations.detachedConfiguration(dependency)
         configuration.setTransitive(false)
 
         configuration.files.each { file ->
-            if (file.isFile() && file.name.endsWith(ARTIFACT_FILE_EXT)) {
+            if (file.isFile()) {
                 map['depFile'] = file
                 map['depName'] = dependency.getName()
             } else {
@@ -157,9 +156,9 @@ class NativeDependenciesResolverTask extends DefaultTask {
 
             rename { fileName ->
                 if (shouldPrefixWithLib) {
-                    "lib" + depName + ".so"
+                    "lib" + depFile
                 } else {
-                    depName + ".so"
+                    depFile
                 }
             }
         }

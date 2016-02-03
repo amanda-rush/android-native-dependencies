@@ -20,6 +20,8 @@ import org.gradle.util.ConfigureUtil
 
 class NativeDependenciesExtension {
     final String CONFIGURATION_SEPARATOR = ":"
+    final String EXT_SEPARATOR = "@"
+    final String EXT_DEFAULT_VALUE = "so"
     final def classifiers = ['armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64', 'mips', 'mips64']
     def dependencies = []
     /**
@@ -48,11 +50,11 @@ class NativeDependenciesExtension {
 
         } else if (dependency.size() == 3) {//add classifier
             classifiers.each {
-                dependencies << new NativeDep (dependency: dep + CONFIGURATION_SEPARATOR + it, shouldPrefixWithLib: addLibPrefixToArtifact)
+                dependencies << new NativeDep (dependency: dep + CONFIGURATION_SEPARATOR + it+EXT_SEPARATOR +EXT_DEFAULT_VALUE, shouldPrefixWithLib: addLibPrefixToArtifact)
             }
 
         } else {
-            dependencies << new NativeDep (dependency: dep, shouldPrefixWithLib: addLibPrefixToArtifact)
+            dependencies << new NativeDep (dependency: dep+EXT_SEPARATOR +EXT_DEFAULT_VALUE, shouldPrefixWithLib: addLibPrefixToArtifact)
         }
     }
 
@@ -75,12 +77,14 @@ class NativeDependenciesExtension {
 
         String temp = m['group'] + CONFIGURATION_SEPARATOR + m['name'] + CONFIGURATION_SEPARATOR + m['version']
 
+
+
         if(!m.containsKey('classifier')) {
             classifiers.each {
-                dependencies << new NativeDep (dependency: temp + CONFIGURATION_SEPARATOR + it, shouldPrefixWithLib: addLibPrefixToArtifact)
+                dependencies << new NativeDep (dependency: temp + CONFIGURATION_SEPARATOR + it +EXT_SEPARATOR +(m.containsKey('ext')? m['ext']:EXT_DEFAULT_VALUE), shouldPrefixWithLib: addLibPrefixToArtifact)
             }
         } else {
-            dependencies << new NativeDep (dependency: temp + CONFIGURATION_SEPARATOR + m['classifier'], shouldPrefixWithLib: addLibPrefixToArtifact)
+            dependencies << new NativeDep (dependency: temp + CONFIGURATION_SEPARATOR + m['classifier'] + EXT_SEPARATOR +(m.containsKey('ext')? m['ext']:EXT_DEFAULT_VALUE), shouldPrefixWithLib: addLibPrefixToArtifact)
         }
     }
 }

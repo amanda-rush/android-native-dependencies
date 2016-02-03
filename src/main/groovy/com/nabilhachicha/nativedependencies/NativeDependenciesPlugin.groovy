@@ -29,7 +29,7 @@ class NativeDependenciesPlugin implements Plugin<Project> {
     final static PLUGIN_NAME = "native_dependencies"
     final static TASK_NAME = "resolveNativeDependencies"
     final static TASK_GROUP = "Android"
-    final static TASK_DESCRIPTION = "Resolve native dependencies (.so)"
+    final static TASK_DESCRIPTION = "Resolve native dependencies"
     final static TASK_ATTACH_TO_LIFECYCLE = "preBuild"
 
     def void apply(Project project) {
