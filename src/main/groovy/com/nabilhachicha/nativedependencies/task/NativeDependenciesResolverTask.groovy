@@ -34,6 +34,7 @@ class NativeDependenciesResolverTask extends DefaultTask {
     def @OutputDirectory
             jniLibs = project.android.sourceSets.main.jniLibs.srcDirs.first()
 
+    final String EXT_SEPARATOR = "@"
     final String X86_FILTER = "x86"
     final String X86_64_FILTER = "x86_64"
     final String MIPS_FILTER = "mips"
@@ -41,6 +42,7 @@ class NativeDependenciesResolverTask extends DefaultTask {
     final String ARM_FILTER = "armeabi"
     final String ARMV7A_FILTER = "armeabi-v7a"
     final String ARM64_FILTER = "arm64-v8a"
+    final String DOT = "."
 
     final Logger log = Logging.getLogger NativeDependenciesResolverTask
 
@@ -57,25 +59,25 @@ class NativeDependenciesResolverTask extends DefaultTask {
     def copyToJniLibs(NativeDep artifact) {
         String filter
 
-        if (artifact.dependency.endsWith(X86_FILTER)) {
+        if (artifact.dependency.contains(X86_FILTER+EXT_SEPARATOR)) {
             filter = X86_FILTER
 
-        } else if (artifact.dependency.endsWith(X86_64_FILTER)) {
+        } else if (artifact.dependency.contains(X86_64_FILTER+EXT_SEPARATOR)) {
             filter = X86_64_FILTER
 
-        } else if (artifact.dependency.endsWith(MIPS_FILTER)) {
+        } else if (artifact.dependency.contains(MIPS_FILTER+EXT_SEPARATOR)) {
             filter = MIPS_FILTER
 
-        } else if (artifact.dependency.endsWith(MIPS_64_FILTER)) {
+        } else if (artifact.dependency.contains(MIPS_64_FILTER+EXT_SEPARATOR)) {
             filter = MIPS_64_FILTER
 
-        } else if (artifact.dependency.endsWith(ARM_FILTER)) {
+        } else if (artifact.dependency.contains(ARM_FILTER+EXT_SEPARATOR)) {
             filter = ARM_FILTER
 
-        } else if (artifact.dependency.endsWith(ARMV7A_FILTER)) {
+        } else if (artifact.dependency.contains(ARMV7A_FILTER+EXT_SEPARATOR)) {
             filter = ARMV7A_FILTER
 
-        } else if (artifact.dependency.endsWith(ARM64_FILTER)) {
+        } else if (artifact.dependency.contains(ARM64_FILTER+EXT_SEPARATOR)) {
             filter = ARM64_FILTER
 
         } else {
@@ -84,8 +86,12 @@ class NativeDependenciesResolverTask extends DefaultTask {
 
         try {
             def map = downloadDep(artifact.dependency)
+
+            def extSplit = artifact.dependency.split(filter+EXT_SEPARATOR)
+            String ext = extSplit[extSplit.size()-1]
+
             if (!map.isEmpty()) {
-                copyToTarget(map.depFile, filter, map.depName, artifact.shouldPrefixWithLib)
+                copyToTarget(map.depFile, filter, map.depName, ext, artifact.shouldPrefixWithLib)
 
             } else {
                 log.warn("Failed to retrieve artifact '$artifact'")
@@ -149,16 +155,16 @@ class NativeDependenciesResolverTask extends DefaultTask {
      * @param shouldPrefixWithLib
      * enable or disable the standard 'lib' prefix to an artifact name
      */
-    def copyToTarget(File depFile, String architecture, String depName, boolean shouldPrefixWithLib) {
+    def copyToTarget(File depFile, String architecture, String depName, String depExt, boolean shouldPrefixWithLib) {
         project.copy {
             from depFile
             into "$jniLibs" + File.separator + "$architecture"
 
             rename { fileName ->
                 if (shouldPrefixWithLib) {
-                    "lib" + depFile
+                    "lib" + depName + DOT+ depExt
                 } else {
-                    depFile
+                    depName + DOT+ depExt
                 }
             }
         }
